@@ -12,39 +12,58 @@ namespace ConsoleApp1.compiler.preprocess
 {
     public class MetaProgrammingTest: ICompileModule {
         public void BeforeCompile(BeforeCompileContext context) {
+            const string typeName = "Record";
+
+            //Debugger.Launch();
+
             var xxx = context.Compilation.SyntaxTrees
                         .Select(s => new {
                             Tree = s,
                             Root = s.GetRoot(),
                             Class = s.GetRoot().DescendantNodes()
                               .OfType<ClassDeclarationSyntax>()
-                              .Where(cs => cs.Identifier.ValueText == "Record")
+                              .Where(cs => cs.Identifier.ValueText == typeName)
                               .SingleOrDefault()
                         })
                         .Where(a => a.Class != null)
                         .Single();
 
-            //var member = node.Class.Members.Select(m => m.WithoutTrivia()).First();
+            var members = xxx.Class.Members
+                .Select(m => m.WithoutTrivia())
+                .OfType<PropertyDeclarationSyntax>()
+                .Select(m => {
+                    var name = m.ChildTokens()
+                        .Where(t => t.Kind() == SyntaxKind.IdentifierToken)
+                        .Select(t => t.Text)
+                        .First();
 
-            var ctor = 
-                SyntaxFactory.ConstructorDeclaration("Record")
+                    var type = m.Type.ToString();
+                    return new { name, type };
+                })
+                .ToList();
+
+            var ctorParams = members
+                .Select(m => SyntaxFactory.Parameter(SyntaxFactory.Identifier(m.name.ToLowerInvariant()))
+                                .WithType(SyntaxFactory.ParseTypeName(m.type)))
+                .ToArray();
+
+            var assignments = members
+                .Select(m => SyntaxFactory.ExpressionStatement(
+                                SyntaxFactory.AssignmentExpression(
+                                    kind: SyntaxKind.SimpleAssignmentExpression,
+                                    left: SyntaxFactory.IdentifierName(m.name),
+                                    right: SyntaxFactory.IdentifierName(m.name.ToLowerInvariant())
+                                )))
+                .ToArray();
+
+            var ctor =
+                SyntaxFactory.ConstructorDeclaration(typeName)
                     .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                    .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("name"))
-                                .WithType(SyntaxFactory.ParseTypeName("string")))
-
-                    .AddBodyStatements(
-                        SyntaxFactory.ExpressionStatement(
-                            SyntaxFactory.AssignmentExpression(
-                                kind: SyntaxKind.SimpleAssignmentExpression,
-                                left: SyntaxFactory.IdentifierName("Name"),
-                                //right: SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("John Doe")
-                                right: SyntaxFactory.IdentifierName("name")
-                            )
-                        )
-                    );
+                    .AddParameterListParameters(ctorParams)
+                    .AddBodyStatements(assignments);
 
             var newClass = xxx.Class.AddMembers(ctor);
-            var newRoot = (CSharpSyntaxNode) xxx.Root.ReplaceNode(xxx.Class, newClass);
+            var newRoot = (CSharpSyntaxNode)xxx.Root.ReplaceNode(xxx.Class, newClass);
             var newTree = CSharpSyntaxTree.Create(newRoot);
 
             //Debugger.Launch();

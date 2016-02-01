@@ -16,6 +16,20 @@ namespace ConsoleApplication1 {
 
             var member = clazz.Members
                 .Select(m => m.WithoutTrivia())
+                .Select(m => {
+                    var name = m.ChildTokens()
+                        .Where(t => t.Kind() == SyntaxKind.IdentifierToken)
+                        .Select(t => t.Text);
+
+                    var type = m.ChildNodes()
+                        .OfType<PropertyDeclarationSyntax>()
+                        .Select(t => t.Type)
+                        .Where(t => t.Kind() == SyntaxKind.PredefinedType)
+                        .Select(t => t.ToString());
+                    //m.ChildNodes
+                    return "";
+
+                })
                 .First()
                 //.Where(m => m.)
                 ;
