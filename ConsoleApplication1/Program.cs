@@ -25,11 +25,14 @@ namespace ConsoleApplication1 {
             var ctor =
                 SyntaxFactory.ConstructorDeclaration("Record")
                     .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                    .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(""))
+                                                    .WithType(SyntaxFactory.ParseTypeName("string")))
                     .AddBodyStatements(
                         SyntaxFactory.ExpressionStatement(
                             SyntaxFactory.AssignmentExpression(
                                 kind: SyntaxKind.SimpleAssignmentExpression,
                                 left: SyntaxFactory.IdentifierName("Name"),
+                                //right: SyntaxFactory.Argument
                                 right: SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("John Doe"))
                             )
                         )

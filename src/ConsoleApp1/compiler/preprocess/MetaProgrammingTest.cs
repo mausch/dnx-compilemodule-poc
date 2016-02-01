@@ -29,12 +29,16 @@ namespace ConsoleApp1.compiler.preprocess
             var ctor = 
                 SyntaxFactory.ConstructorDeclaration("Record")
                     .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                    .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("name"))
+                                .WithType(SyntaxFactory.ParseTypeName("string")))
+
                     .AddBodyStatements(
                         SyntaxFactory.ExpressionStatement(
                             SyntaxFactory.AssignmentExpression(
                                 kind: SyntaxKind.SimpleAssignmentExpression,
                                 left: SyntaxFactory.IdentifierName("Name"),
-                                right: SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("John Doe"))
+                                //right: SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("John Doe")
+                                right: SyntaxFactory.IdentifierName("name")
                             )
                         )
                     );

@@ -13,7 +13,7 @@ namespace ConsoleApp1
     {
         public static void Main(string[] args)
         {
-            var record = new Record(); // this should not compile
+            var record = new Record(name: "Juan"); // this should not compile
             Console.WriteLine(record.Name);
             //var record = new Record(name: "John Doe"); // this should compile
         }
